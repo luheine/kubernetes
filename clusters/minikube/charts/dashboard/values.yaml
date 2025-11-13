@@ -1,0 +1,43 @@
+image:
+  repository: ghcr.io/bastienwirtz/homer
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: dashboard.minikube.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: dashboard-tls
+      hosts:
+        - dashboard.minikube.local
+
+config:
+  title: "🏡 Homelab Dashboard"
+  subtitle: "Minikube GitOps Setup"
+  links:
+    - name: ArgoCD
+      url: "https://argocd.minikube.local"
+      icon: "fas fa-code-branch"
+    - name: Grafana
+      url: "https://grafana.minikube.local"
+      icon: "fas fa-chart-line"
+    - name: Prometheus
+      url: "https://prometheus.minikube.local"
+      icon: "fas fa-database"
+    - name: Alertmanager
+      url: "https://alertmanager.minikube.local"
+      icon: "fas fa-bell"
+    - name: Homepage
+      url: "https://homepage.minikube.local"
+      icon: "fas fa-home"
