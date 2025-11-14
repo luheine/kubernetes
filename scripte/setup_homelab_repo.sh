@@ -1,337 +1,207 @@
-#!/usr/bin/env bash
-#######################################
-### notwendige Variablen definieren ###
-#######################################
-GIT_PROJECT="kubernetes"
-PROJECT_DIR="/home/ansible/$GIT_PROJECT"
-GITHUB_USER="luheine"
-
-
+#!/bin/bash
 set -e
 
-echo "🚀 Starte Erstellung des Homelab-Projektgerüsts ..."
+########################################
+# 🏗️  Pfad-Definitionen
+########################################
+PROJECT_DIR="$HOME/kubernetes"
+CLUSTERS_DIR="$PROJECT_DIR/clusters/minikube"
+INGRESS_DIR="$CLUSTERS_DIR/ingress"
+CERT_DIR="$CLUSTERS_DIR/cert-manager"
+APPS_DIR="$CLUSTERS_DIR/apps"
+SCRIPTS_DIR="$PROJECT_DIR/scripts"
+PLAYBOOKS_DIR="$PROJECT_DIR/playbooks"
 
-# Basisverzeichnis
-#PROJECT_DIR="$HOME/homelab-minikube-gitops"
-mkdir -p "$PROJECT_DIR"
-cd "$PROJECT_DIR"
-
-echo "📁 Erstelle Verzeichnisstruktur ..."
+########################################
+# 📁 Verzeichnisstruktur erstellen
+########################################
+echo "📁 Erstelle Projektstruktur unter: $PROJECT_DIR"
 mkdir -p \
-  clusters/minikube/ingress \
-  clusters/minikube/cert-manager \
-  clusters/minikube/charts/dashboard/templates \
-  clusters/minikube/apps/dashboard \
-  playbooks
+  "$INGRESS_DIR" \
+  "$CERT_DIR" \
+  "$APPS_DIR/dashboard" \
+  "$SCRIPTS_DIR" \
+  "$PLAYBOOKS_DIR"
 
-# --- 1. Ingress Config ---
-cat > clusters/minikube/ingress/nginx-ingress-values.yaml <<'EOF'
+########################################
+# ⚙️  Helm values.yaml für Ingress erstellen
+########################################
+cat <<'EOF' > "$INGRESS_DIR/values.yaml"
 controller:
-  ingressClass: nginx
+  replicaCount: 1
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: true
   service:
     type: NodePort
     nodePorts:
       http: 30080
       https: 30443
+  admissionWebhooks:
+    enabled: false
   metrics:
     enabled: true
-  watchIngressWithoutClass: true
-defaultBackend:
-  enabled: true
+  config:
+    use-forwarded-headers: "true"
+    enable-real-ip: "true"
+    compute-full-forwarded-for: "true"
+    proxy-body-size: "64m"
+    proxy-read-timeout: "600"
+    proxy-send-timeout: "600"
+  extraArgs:
+    default-ssl-certificate: "cert-manager/tls-secret"
 EOF
 
-cat > clusters/minikube/ingress/install-ingress.sh <<'EOF'
-#!/usr/bin/env bash
+########################################
+# 🧰 install-ingress.sh
+########################################
+cat <<'EOF' > "$INGRESS_DIR/install-ingress.sh"
+#!/bin/bash
 set -e
+
+# --- Variablen ---
+PROJECT_DIR="$HOME/kubernetes"
+INGRESS_DIR="$PROJECT_DIR/clusters/minikube/ingress"
+VALUES_FILE="$INGRESS_DIR/values.yaml"
 
 echo "🚀 Installing NGINX Ingress Controller in Minikube..."
 
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+# Minikube Ingress Addon ggf. deaktivieren
+if minikube addons list | grep -q "ingress: enabled"; then
+  echo "⚠️  Minikube Ingress Addon detected — disabling..."
+  minikube addons disable ingress
+  kubectl delete ns ingress-nginx --ignore-not-found=true
+fi
+
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx || true
 helm repo update
 
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
   --namespace ingress-nginx \
   --create-namespace \
-  -f clusters/minikube/ingress/nginx-ingress-values.yaml
+  -f "$VALUES_FILE"
 
-kubectl rollout status deployment/ingress-nginx-controller -n ingress-nginx
-echo "✅ NGINX Ingress Controller deployed!"
+echo "✅ Ingress NGINX ready."
 EOF
-chmod +x clusters/minikube/ingress/install-ingress.sh
+chmod +x "$INGRESS_DIR/install-ingress.sh"
 
-# --- 2. Cert-Manager ClusterIssuer ---
-cat > clusters/minikube/cert-manager/cluster-issuer-staging.yaml <<'EOF'
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-staging
-spec:
-  acme:
-    server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: admin@minikube.local
-    privateKeySecretRef:
-      name: letsencrypt-staging
-    solvers:
-      - http01:
-          ingress:
-            class: nginx
+########################################
+# 🧰 install-cert-manager.sh
+########################################
+cat <<'EOF' > "$SCRIPTS_DIR/install-cert-manager.sh"
+#!/bin/bash
+set -e
+
+# --- Variablen ---
+CERT_NS="cert-manager"
+
+echo "🚀 Installing cert-manager..."
+
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.crds.yaml
+
+helm repo add jetstack https://charts.jetstack.io || true
+helm repo update
+
+helm upgrade --install cert-manager jetstack/cert-manager \
+  --namespace "$CERT_NS" \
+  --create-namespace \
+  --set installCRDs=true
+
+echo "✅ cert-manager installed successfully."
 EOF
+chmod +x "$SCRIPTS_DIR/install-cert-manager.sh"
 
-cat > clusters/minikube/cert-manager/cluster-issuer-prod.yaml <<'EOF'
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-prod
-spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: admin@minikube.local
-    privateKeySecretRef:
-      name: letsencrypt-prod
-    solvers:
-      - http01:
-          ingress:
-            class: nginx
+########################################
+# 🧰 install-argocd.sh
+########################################
+cat <<'EOF' > "$SCRIPTS_DIR/install-argocd.sh"
+#!/bin/bash
+set -e
+
+# --- Variablen ---
+ARGO_NS="argocd"
+
+echo "🚀 Installing ArgoCD..."
+
+helm repo add argo https://argoproj.github.io/argo-helm || true
+helm repo update
+
+helm upgrade --install argocd argo/argo-cd \
+  --namespace "$ARGO_NS" \
+  --create-namespace
+
+echo "✅ ArgoCD installed successfully."
 EOF
+chmod +x "$SCRIPTS_DIR/install-argocd.sh"
 
-# --- 3. Dashboard Helm Chart ---
-cat > clusters/minikube/charts/dashboard/Chart.yaml <<'EOF'
-apiVersion: v2
-name: dashboard
-description: Simple Homelab Startpage
-type: application
-version: 0.1.0
-appVersion: "1.0"
+########################################
+# 🧰 update-hosts.sh
+########################################
+cat <<'EOF' > "$SCRIPTS_DIR/update-hosts.sh"
+#!/bin/bash
+set -e
+
+# --- Variablen ---
+DOMAIN_SUFFIX="minikube.local"
+MINIKUBE_IP=$(minikube ip)
+
+echo "🔧 Updating /etc/hosts with Minikube IP: $MINIKUBE_IP"
+
+sudo bash -c "cat <<EOT >> /etc/hosts
+$MINIKUBE_IP argocd.$DOMAIN_SUFFIX grafana.$DOMAIN_SUFFIX prometheus.$DOMAIN_SUFFIX alertmanager.$DOMAIN_SUFFIX dashboard.$DOMAIN_SUFFIX
+EOT"
+
+echo "✅ /etc/hosts updated successfully."
 EOF
+chmod +x "$SCRIPTS_DIR/update-hosts.sh"
 
-cat > clusters/minikube/charts/dashboard/values.yaml <<'EOF'
-image:
-  repository: ghcr.io/bastienwirtz/homer
-  tag: latest
-  pullPolicy: IfNotPresent
-
-service:
-  type: ClusterIP
-  port: 8080
-
-ingress:
-  enabled: true
-  className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  hosts:
-    - host: dashboard.minikube.local
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: dashboard-tls
-      hosts:
-        - dashboard.minikube.local
-
-config:
-  title: "🏡 Homelab Dashboard"
-  subtitle: "Minikube GitOps Setup"
-  links:
-    - name: ArgoCD
-      url: "https://argocd.minikube.local"
-      icon: "fas fa-code-branch"
-    - name: Grafana
-      url: "https://grafana.minikube.local"
-      icon: "fas fa-chart-line"
-    - name: Prometheus
-      url: "https://prometheus.minikube.local"
-      icon: "fas fa-database"
-    - name: Alertmanager
-      url: "https://alertmanager.minikube.local"
-      icon: "fas fa-bell"
-    - name: Homepage
-      url: "https://homepage.minikube.local"
-      icon: "fas fa-home"
-EOF
-
-cat > clusters/minikube/charts/dashboard/templates/deployment.yaml <<'EOF'
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: dashboard
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: dashboard
-  template:
-    metadata:
-      labels:
-        app: dashboard
-    spec:
-      containers:
-        - name: homer
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - containerPort: 8080
-          volumeMounts:
-            - name: config
-              mountPath: /www/assets/config.yml
-              subPath: config.yml
-      volumes:
-        - name: config
-          configMap:
-            name: dashboard-config
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: dashboard-config
-data:
-  config.yml: |
-    title: {{ .Values.config.title }}
-    subtitle: {{ .Values.config.subtitle }}
-    links:
-    {{- range .Values.config.links }}
-      - name: {{ .name }}
-        url: {{ .url }}
-        icon: {{ .icon }}
-    {{- end }}
-EOF
-
-cat > clusters/minikube/charts/dashboard/templates/service.yaml <<'EOF'
-apiVersion: v1
-kind: Service
-metadata:
-  name: dashboard
-spec:
-  selector:
-    app: dashboard
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: 8080
-EOF
-
-cat > clusters/minikube/charts/dashboard/templates/ingress.yaml <<'EOF'
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: dashboard
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-spec:
-  tls:
-    - hosts:
-        - dashboard.minikube.local
-      secretName: dashboard-tls
-  rules:
-    - host: dashboard.minikube.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: dashboard
-                port:
-                  number: 8080
-EOF
-
-# --- 4. ArgoCD Application ---
-cat > clusters/minikube/apps/dashboard/application-dashboard.yaml <<'EOF'
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: dashboard
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: "https://github.com/$GITHUB_USER/$GIT_PROJECT.git"
-    targetRevision: main
-    path: clusters/minikube/charts/dashboard
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: default
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-EOF
-
-# --- 5. Ansible Bootstrap ---
-cat > playbooks/bootstrap.yml <<'EOF'
+########################################
+# 📜 Bootstrap Playbook
+########################################
+cat <<EOF > "$PLAYBOOKS_DIR/bootstrap.yml"
 ---
 - name: Bootstrap complete Minikube Homelab
   hosts: localhost
   connection: local
   gather_facts: false
   vars:
-    kube_context: minikube
+    project_dir: "$PROJECT_DIR"
   tasks:
-
     - name: Ensure Minikube is running
       shell: |
-        minikube status | grep "host: Running" || minikube start --driver=docker
-      changed_when: false
-
-    - name: Enable Minikube Ingress addon
-      shell: minikube addons enable ingress
+        minikube status | grep "host: Running" || minikube start --driver=podman
       changed_when: false
 
     - name: Deploy NGINX Ingress Controller via Helm
-      shell: bash clusters/minikube/ingress/install-ingress.sh
+      shell: bash "$INGRESS_DIR/install-ingress.sh"
       changed_when: false
 
-    - name: Install cert-manager CRDs
-      shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.crds.yaml
-      changed_when: false
-
-    - name: Install cert-manager Helm chart
-      shell: |
-        helm repo add jetstack https://charts.jetstack.io || true
-        helm repo update
-        helm upgrade --install cert-manager jetstack/cert-manager -n cert-manager --create-namespace --set installCRDs=true
-      changed_when: false
-
-    - name: Apply staging ClusterIssuer
-      shell: kubectl apply -f clusters/minikube/cert-manager/cluster-issuer-staging.yaml
-      changed_when: false
-
-    - name: Apply production ClusterIssuer
-      shell: kubectl apply -f clusters/minikube/cert-manager/cluster-issuer-prod.yaml
+    - name: Install cert-manager via Helm
+      shell: bash "$SCRIPTS_DIR/install-cert-manager.sh"
       changed_when: false
 
     - name: Install ArgoCD via Helm
-      shell: |
-        helm repo add argo https://argoproj.github.io/argo-helm || true
-        helm repo update
-        helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace
+      shell: bash "$SCRIPTS_DIR/install-argocd.sh"
       changed_when: false
 
-    - name: Deploy Root ArgoCD App-of-Apps
-      shell: kubectl apply -f clusters/minikube/apps/root-application.yaml -n argocd
+    - name: Update /etc/hosts entries
+      shell: bash "$SCRIPTS_DIR/update-hosts.sh"
       changed_when: false
 
-    - name: Update /etc/hosts for Minikube domains
-      become: yes
-      lineinfile:
-        path: /etc/hosts
-        line: "{{ item }}"
-        state: present
-      loop:
-        - "{{ lookup('pipe','minikube ip') }} argocd.minikube.local homepage.minikube.local grafana.minikube.local prometheus.minikube.local alertmanager.minikube.local dashboard.minikube.local"
-
-    - name: Wait for all pods in default namespace to be running
-      shell: kubectl wait --for=condition=Ready pods --all --namespace default --timeout=300s
+    - name: Wait for all pods to be ready
+      shell: kubectl wait --for=condition=Ready pods --all --all-namespaces --timeout=300s
       changed_when: false
 EOF
 
-echo "✅ Projektstruktur erstellt unter: $PROJECT_DIR"
-echo "💡 Jetzt kannst du dein Repo initialisieren:"
-echo ""
-echo "  cd $PROJECT_DIR"
-echo "  git init && git add . && git commit -m 'Initial Homelab setup'"
-echo "  git remote add origin https://github.com/<dein-github-user>/homelab-minikube-gitops.git"
-echo "  git push -u origin main"
-echo ""
-echo "🚀 Danach kannst du mit 'ansible-playbook playbooks/bootstrap.yml' dein Homelab starten!"
+########################################
+# 🧭 Git-Setup
+########################################
+cd "$PROJECT_DIR"
+git init -q
+git add .
+git commit -m "Initial Homelab Minikube GitOps setup" -q
 
+echo "✅ Setup abgeschlossen!"
+echo "💡 Starte dein Homelab mit:"
+echo "ansible-playbook playbooks/bootstrap.yml"

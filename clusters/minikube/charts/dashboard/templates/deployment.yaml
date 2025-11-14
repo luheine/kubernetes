@@ -15,29 +15,5 @@ spec:
       containers:
         - name: homer
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8080
-          volumeMounts:
-            - name: config
-              mountPath: /www/assets/config.yml
-              subPath: config.yml
-      volumes:
-        - name: config
-          configMap:
-            name: dashboard-config
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: dashboard-config
-data:
-  config.yml: |
-    title: {{ .Values.config.title }}
-    subtitle: {{ .Values.config.subtitle }}
-    links:
-    {{- range .Values.config.links }}
-      - name: {{ .name }}
-        url: {{ .url }}
-        icon: {{ .icon }}
-    {{- end }}

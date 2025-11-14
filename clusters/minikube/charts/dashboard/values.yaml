@@ -35,9 +35,3 @@ config:
     - name: Prometheus
       url: "https://prometheus.minikube.local"
       icon: "fas fa-database"
-    - name: Alertmanager
-      url: "https://alertmanager.minikube.local"
-      icon: "fas fa-bell"
-    - name: Homepage
-      url: "https://homepage.minikube.local"
-      icon: "fas fa-home"
