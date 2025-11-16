@@ -1,32 +1,12 @@
 ---
-- name: Bootstrap complete Minikube Homelab
-  hosts: localhost
+- hosts: localhost
   connection: local
   gather_facts: false
-  vars:
-    project_dir: "/home/ansible/kubernetes"
+
   tasks:
-    - name: Ensure Minikube is running
-      shell: |
-        minikube status | grep "host: Running" || minikube start --driver=podman
+    - name: Ensure minikube running
+      shell: minikube status | grep "host: Running" || minikube start --driver=podman
       changed_when: false
 
-    - name: Deploy NGINX Ingress Controller via Helm
-      shell: bash "/home/ansible/kubernetes/clusters/minikube/ingress/install-ingress.sh"
-      changed_when: false
-
-    - name: Install cert-manager via Helm
-      shell: bash "/home/ansible/kubernetes/scripts/install-cert-manager.sh"
-      changed_when: false
-
-    - name: Install ArgoCD via Helm
-      shell: bash "/home/ansible/kubernetes/scripts/install-argocd.sh"
-      changed_when: false
-
-    - name: Update /etc/hosts entries
-      shell: bash "/home/ansible/kubernetes/scripts/update-hosts.sh"
-      changed_when: false
-
-    - name: Wait for all pods to be ready
-      shell: kubectl wait --for=condition=Ready pods --all --all-namespaces --timeout=300s
-      changed_when: false
+    - name: Run setup_cluster
+      import_playbook: setup_cluster.yml

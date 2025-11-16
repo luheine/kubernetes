@@ -4,34 +4,14 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: ClusterIP
   port: 8080
 
 ingress:
   enabled: true
-  className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
   hosts:
-    - host: dashboard.minikube.local
-      paths:
-        - path: /
-          pathType: Prefix
+    - dashboard.minikube.local
   tls:
-    - secretName: dashboard-tls
-      hosts:
+    - hosts:
         - dashboard.minikube.local
+      secretName: dashboard-tls
 
-config:
-  title: "🏡 Homelab Dashboard"
-  subtitle: "Minikube GitOps Setup"
-  links:
-    - name: ArgoCD
-      url: "https://argocd.minikube.local"
-      icon: "fas fa-code-branch"
-    - name: Grafana
-      url: "https://grafana.minikube.local"
-      icon: "fas fa-chart-line"
-    - name: Prometheus
-      url: "https://prometheus.minikube.local"
-      icon: "fas fa-database"

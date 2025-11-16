@@ -1,0 +1,50 @@
+---
+- name: "Liste aller cert-manager CRDs"
+  set_fact:
+    cert_manager_crds:
+      - "certificates.cert-manager.io"
+      - "certificaterequests.cert-manager.io"
+      - "issuers.cert-manager.io"
+      - "clusterissuers.cert-manager.io"
+      - "orders.acme.cert-manager.io"
+      - "challenges.acme.cert-manager.io"
+
+- name: "CRDs löschen falls vorhanden"
+  kubernetes.core.k8s:
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ cert_manager_crds }}"
+  ignore_errors: true
+
+- name: "2 Sekunden warten"
+  pause:
+    seconds: 2
+
+- name: "Übrige CRDs suchen"
+  command: kubectl get crd "{{ item }}" -o json
+  loop: "{{ cert_manager_crds }}"
+  register: leftover_crds
+  failed_when: false
+  changed_when: false
+
+- name: "Ownership-Metadaten entfernen (Annotations & Labels)"
+  when: item.stdout != ""
+  loop: "{{ leftover_crds.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  block:
+    - name: Entferne Helm Annotations
+      command: >
+        kubectl annotate crd {{ item.item }}
+        meta.helm.sh/release-name- meta.helm.sh/release-namespace-
+      ignore_errors: true
+
+    - name: Entferne managed-by Label
+      command: kubectl label crd {{ item.item }} app.kubernetes.io/managed-by- 
+      ignore_errors: true
+
+- name: "Debug: Cleanup abgeschlossen"
+  debug:
+    msg: "cert-manager CRD Cleanup abgeschlossen"
