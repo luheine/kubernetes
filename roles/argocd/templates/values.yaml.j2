@@ -1,0 +1,21 @@
+# Minimal example values for argo-cd chart
+server:
+  service:
+    type: ClusterIP
+  extraArgs: []
+  ingress:
+    enabled: false
+  route:
+    enabled: false      # <-- wichtig für Vanilla Kubernetes, sonst OpenShift Route Template crasht
+
+controller:
+  enabled: true
+
+applicationController:
+  enabled: true
+
+repositoryServer:
+  enabled: true
+
+redis:
+  enabled: true

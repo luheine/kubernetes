@@ -5,7 +5,7 @@
 
   tasks:
     - name: Ensure minikube running
-      shell: minikube status | grep "host: Running" || minikube start --driver=podman
+      shell: minikube status | grep 'host: Running' || minikube start --driver=podman
       changed_when: false
 
     - name: Run setup_cluster

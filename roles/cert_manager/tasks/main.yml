@@ -1,8 +1,12 @@
 ---
-- name: "Apply cert-manager CRDs"
-  kubernetes.core.k8s:
-    state: present
-    src: "https://github.com/cert-manager/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.crds.yaml"
+- name: Apply cert-manager CRDs (kubectl, robust)
+  command: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.crds.yaml --timeout=120s
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: crd_apply
+  retries: 5
+  delay: 10
+  until: crd_apply.rc == 0
 
 - name: "Add jetstack repo"
   kubernetes.core.helm_repository:

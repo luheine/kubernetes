@@ -21,11 +21,14 @@
       import_role:
         name: argocd
 
-    - name: Install Prometheus stack
-      import_role:
-        name: promstack
+    # - name: Install Prometheus stack
+    #   import_role:
+    #     name: promstack
 
     - name: Create root ArgoCD Application in cluster (apply YAML)
-      shell: kubectl apply -f "$APP_DIR/root-application.yaml" -n argocd
-      args:
-        warn: false
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ root_application_src }}"
+      environment:
+        KUBECONFIG: "{{ kubeconfig }}"
+

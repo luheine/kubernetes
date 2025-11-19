@@ -29,21 +29,27 @@
   failed_when: false
   changed_when: false
 
-- name: "Ownership-Metadaten entfernen (Annotations & Labels)"
-  when: item.stdout != ""
+# ------------------------------------
+# FIX: block mit loop korrekt kombiniert
+# ------------------------------------
+- name: Entferne Helm Annotations
+  command: >
+    kubectl annotate crd {{ item.item }}
+    meta.helm.sh/release-name- meta.helm.sh/release-namespace-
   loop: "{{ leftover_crds.results }}"
+  when: item.stdout != ""
   loop_control:
     label: "{{ item.item }}"
-  block:
-    - name: Entferne Helm Annotations
-      command: >
-        kubectl annotate crd {{ item.item }}
-        meta.helm.sh/release-name- meta.helm.sh/release-namespace-
-      ignore_errors: true
+  ignore_errors: true
 
-    - name: Entferne managed-by Label
-      command: kubectl label crd {{ item.item }} app.kubernetes.io/managed-by- 
-      ignore_errors: true
+- name: Entferne managed-by Label
+  command: >
+    kubectl label crd {{ item.item }} app.kubernetes.io/managed-by-
+  loop: "{{ leftover_crds.results }}"
+  when: item.stdout != ""
+  loop_control:
+    label: "{{ item.item }}"
+  ignore_errors: true
 
 - name: "Debug: Cleanup abgeschlossen"
   debug:
