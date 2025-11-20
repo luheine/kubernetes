@@ -17,3 +17,13 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: config
+              mountPath: /www/assets
+      volumes:
+        - name: config
+          configMap:
+            name: homer-config
+            items:
+              - key: config.yml
+                path: config.yml
