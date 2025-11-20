@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/luheine/kubernetes.git
-    targetRevision: HEAD
+    targetRevision: main
     path: /home/ansible/kubernetes/clusters/minikube/apps/sportweb
     helm:
       valueFiles:
