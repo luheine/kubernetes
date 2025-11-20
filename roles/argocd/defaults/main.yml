@@ -1,4 +1,8 @@
 ---
+github_user: luheine
+github_project: kubernetes
+
+
 # defaults file for argocd
 argocd_namespace: argocd
 argocd_release_name: argocd
