@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/luheine/kubernetes.git
-    targetRevision: HEAD
+    targetRevision: main
     path: clusters/minikube/apps/sportweb
     helm:
       valueFiles:
@@ -19,6 +19,3 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
-    - ServerSideApply=true
