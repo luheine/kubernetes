@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: homepage
+  name: sportweb
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: "https://github.com/luheine/kubernetes.git"
-    targetRevision: main
-    path: clusters/minikube/charts/homepage
+    repoURL: https://github.com/luheine/kubernetes.git
+    targetRevision: HEAD
+    path: ~/kubernetes/clusters/minikube/apps/sportweb
+    helm:
+      valueFiles:
+        - values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: homepages
+    namespace: sportweb
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
-    - ServerSideApply=true

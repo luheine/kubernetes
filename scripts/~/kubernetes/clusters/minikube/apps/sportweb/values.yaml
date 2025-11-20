@@ -1,0 +1,16 @@
+image:
+  repository: b4bz/homer:latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: sport.example.com
+      paths:
+        - path: /
+          pathType: Prefix
