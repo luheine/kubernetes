@@ -14,7 +14,7 @@
 # -----------------------------
 # Variablen
 # -----------------------------
-ROOT_DIR="/home/ansible//kubernetes/clusters/minikube/apps"              # Basisverzeichnis der Apps
+ROOT_DIR="clusters/minikube/apps"              # Basisverzeichnis der Apps
 APP_NAME="sportweb"
 APP_DIR="$ROOT_DIR/$APP_NAME"
 GIT_REPO="https://github.com/luheine/kubernetes.git"   # Dein Repo
