@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stirlingpdf
+  labels:
+    app: stirlingpdf
+    environment: production
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: stirlingpdf
+      environment: production
+  template:
+    metadata:
+      annotations:
+      labels:
+        app: stirlingpdf
+        environment: production
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: stirlingpdf
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+              name: stirlingpdf
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 30
+            initialDelaySeconds: 10
+          resources:
+            requests:
+              cpu: 0.5
+              memory: 256Mi
+            limits:
+              cpu: 1.0
+              memory: 768Mi
+          volumeMounts:
+            - mountPath: /configs
+              name: data
+              subPath: extraConfigs
+            - mountPath: /usr/share/tessdata
+              name: data
+              subPath: trainingData
+          env:
+            - name: DOCKER_ENABLE_SECURITY
+              value: "true"
+            - name: SECURITY_ENABLE_LOGIN
+              value: "true"
+            - name: SECURITY_INITIALLOGIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: security-initiallogin
+                  key: username
+            - name: SECURITY_INITIALLOGIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: security-initiallogin
+                  key: password
+            - name: LANGS
+              value: de_DE
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: stirling-pdf
+
+
+
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 8080

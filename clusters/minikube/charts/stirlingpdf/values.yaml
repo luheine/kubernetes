@@ -1,0 +1,17 @@
+image:
+  repository: stirlingtools/stirling-pdf
+  tag: latest #1.0.2
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+
+ingress:
+  enabled: true
+  hosts:
+    - stirlingpdf.minikube.local
+  tls:
+    - hosts:
+        - stirlingpdf.minikube.local
+      secretName: stirlingpdf-tls
+
