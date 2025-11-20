@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/luheine/kubernetes.git
     targetRevision: HEAD
-    path: /home/ansible/kubernetes/clusters/minikube/apps/sportweb
+    path: clusters/minikube/apps/sportweb
     helm:
       valueFiles:
         - values.yaml
