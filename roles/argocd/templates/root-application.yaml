@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: "https://github.com/$GITHUB_USER/.git"
+    repoURL: "https://github.com/{{ github_user }}/.git"
     targetRevision: main
     path: clusters/minikube/apps
     directory:
