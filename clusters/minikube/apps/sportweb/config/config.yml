@@ -1,0 +1,12 @@
+title: "Sport Web Dashboard"
+subtitle: "Übersicht"
+columns: 3
+
+links:
+  - name: "Live Ergebnisse"
+    logo: "https://example.com/logo.png"
+    url: "https://live.example.com"
+  - name: "Spielpläne"
+    url: "https://www.sport.de/spielplan/"
+  - name: "Statistiken"
+    url: "https://sportsdata.example.com"
