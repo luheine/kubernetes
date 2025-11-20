@@ -11,5 +11,5 @@
     release_namespace: "{{ prom_namespace }}"
     create_namespace: true
     values_files:
-      - "{{ role_path }}/templates/values.yaml.j2"
+      - "{{ role_path }}/promstack/templates/values.yaml.j2"
     wait: true
