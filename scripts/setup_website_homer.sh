@@ -66,7 +66,7 @@ spec:
   project: default
   source:
     repoURL: $GIT_REPO
-    targetRevision: HEAD
+    targetRevision: main
     path: $APP_DIR
     helm:
       valueFiles:

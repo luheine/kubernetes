@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homer-config
+  namespace: sportweb
+data:
+  config.yml: |
+    title: "Sport Web Dashboard"
+    subtitle: "Übersicht"
+    columns: 3
+
+    links:
+      - name: "Live Ergebnisse"
+        url: "https://live.example.com"
+      - name: "Spielpläne"
+        url: "https://www.sport.de/spielplan/"
+      - name: "Statistiken"
+        url: "https://sportsdata.example.com"
