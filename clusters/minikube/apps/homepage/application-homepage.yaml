@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: "https://github.com/{{ github_user }}/{{ github_project }}.git"
+    repoURL: "https://github.com/luheine/kubernetes.git"
     targetRevision: main
     path: clusters/minikube/charts/homepage
   destination:
