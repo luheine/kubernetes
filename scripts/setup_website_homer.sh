@@ -78,6 +78,9 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
 EOF
 
 echo "✔️ ArgoCD Application erzeugt: $APP_DIR/application.yaml"
