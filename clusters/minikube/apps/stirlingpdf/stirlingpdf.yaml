@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pdf-tools
+  namespace: argocd
+spec:
+  destination:
+    namespace: stirlingpdf
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: clusters/minikube/charts/stirlingpdf
+    repoURL: https://github.com/luheine/kubernetes.git
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
