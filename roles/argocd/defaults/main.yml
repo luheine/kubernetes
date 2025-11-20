@@ -1,0 +1,16 @@
+---
+# defaults file for argocd
+argocd_namespace: argocd
+argocd_release_name: argocd
+argocd_chart_ref: argo/argo-cd
+argocd_chart_version: "" # optional pin
+argocd_create_namespace: true
+argocd_helm_timeout: 600 # seconds
+argocd_values_src: "{{ role_path }}/templates/values.yaml.j2"
+root_application_src: "{{ role_path }}/templates/root-application.yaml"
+kubeconfig: "{{ lookup('env','KUBECONFIG') | default('/home/ansible/.kube/config', true) }}"
+
+
+# Helm repo
+argocd_helm_repo_name: argo
+argocd_helm_repo_url: https://argoproj.github.io/argo-helm

@@ -1,0 +1,8 @@
+# handlers for argocd
+- name: restart argocd-server
+  kubernetes.core.k8s_scale:
+    kind: Deployment
+    namespace: "{{ argocd_namespace }}"
+    name: argocd-server
+    replicas: 0
+  when: false # placeholder, normalerweise nicht benutzt

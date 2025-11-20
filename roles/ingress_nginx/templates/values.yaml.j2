@@ -1,0 +1,15 @@
+controller:
+  replicaCount: 1
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: true
+  service:
+    type: NodePort
+    nodePorts:
+      http: 30080
+      https: 30443
+  admissionWebhooks:
+    enabled: false
+  metrics:
+    enabled: true

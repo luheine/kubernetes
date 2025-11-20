@@ -1,0 +1,15 @@
+---
+- name: "Add prometheus-community repo"
+  kubernetes.core.helm_repository:
+    name: prometheus-community
+    repo_url: https://prometheus-community.github.io/helm-charts
+
+- name: "Install/Upgrade kube-prometheus-stack"
+  kubernetes.core.helm:
+    name: "{{ prom_release_name }}"
+    chart_ref: "{{ prom_chart }}"
+    release_namespace: "{{ prom_namespace }}"
+    create_namespace: true
+    values_files:
+      - "{{ role_path }}/templates/values.yaml.j2"
+    wait: true

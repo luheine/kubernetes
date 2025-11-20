@@ -1,0 +1,34 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+
+    - name: Cleanup cert-manager CRDs
+      import_role:
+        name: cert_manager_cleanup
+
+    - name: Install cert-manager
+      import_role:
+        name: cert_manager
+
+    - name: Install ingress-nginx
+      import_role:
+        name: ingress_nginx
+
+    - name: Install ArgoCD
+      import_role:
+        name: argocd
+
+    # - name: Install Prometheus stack
+    #   import_role:
+    #     name: promstack
+
+    - name: Create root ArgoCD Application in cluster (apply YAML)
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ root_application_src }}"
+      environment:
+        KUBECONFIG: "{{ kubeconfig }}"
+

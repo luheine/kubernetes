@@ -1,0 +1,63 @@
+---
+- name: Ensure kubeconfig path exists and is readable
+  ansible.builtin.stat:
+    path: "{{ kubeconfig }}"
+  register: kubeconfig_stat
+
+- name: Fail if kubeconfig missing
+  ansible.builtin.fail:
+    msg: "Kubeconfig {{ kubeconfig }} not found or not readable. Ensure the ansible user can access the kubeconfig."
+  when: not kubeconfig_stat.stat.exists
+
+- name: Add argo helm repo
+  kubernetes.core.helm_repository:
+    name: "{{ argocd_helm_repo_name }}"
+    repo_url: "{{ argocd_helm_repo_url }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+
+- name: Install/Upgrade ArgoCD
+  kubernetes.core.helm:
+    name: "{{ argocd_release_name }}"
+    chart_ref: "{{ argocd_chart_ref }}"
+    release_namespace: "{{ argocd_namespace }}"
+    create_namespace: "{{ argocd_create_namespace }}"
+    wait: true
+    timeout: "{{ argocd_helm_timeout }}s"
+    values: "{{ lookup('file', argocd_values_src) | from_yaml }}"
+    chart_version: "{{ argocd_chart_version }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: helm_argocd
+  retries: 1
+  until: helm_argocd is succeeded
+
+
+- name: "Debug Helm result"
+  ansible.builtin.debug:
+    var: helm_argocd
+  when: helm_argocd is defined
+
+- name: Wait for argocd-server deployment to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    namespace: "{{ argocd_namespace }}"
+    name: argocd-server
+  register: argocd_server_deploy
+  retries: 12
+  delay: 10
+  until: argocd_server_deploy.resources[0].status.availableReplicas == argocd_server_deploy.resources[0].spec.replicas
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+
+
+- name: Apply root ArgoCD Application (apply YAML)
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ root_application_src }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+
+- name: "Debug: ArgoCD root app applied"
+  ansible.builtin.debug:
+    msg: "Root ArgoCD Application applied from {{ root_application_src }}"

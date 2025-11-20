@@ -1,0 +1,5 @@
+---
+prom_namespace: monitoring
+prom_chart: prometheus-community/kube-prometheus-stack
+prom_release_name: promstack
+prom_chart_version: ""   # optional pin

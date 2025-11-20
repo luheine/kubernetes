@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: List all pods
+      command: kubectl get pods -A
+    - name: List services
+      command: kubectl get svc -A
+    - name: List cert-manager CRDs
+      command: kubectl get crd | grep cert-manager || true

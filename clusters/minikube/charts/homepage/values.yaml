@@ -1,0 +1,13 @@
+image:
+  repository: nginx
+  tag: latest
+service:
+  port: 80
+ingress:
+  enabled: true
+  hosts:
+    - homepage.minikube.local
+  tls:
+    - hosts:
+        - homepage.minikube.local
+      secretName: homepage-tls

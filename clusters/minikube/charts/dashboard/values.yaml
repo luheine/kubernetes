@@ -1,0 +1,17 @@
+image:
+  repository: ghcr.io/bastienwirtz/homer
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+
+ingress:
+  enabled: true
+  hosts:
+    - dashboard.minikube.local
+  tls:
+    - hosts:
+        - dashboard.minikube.local
+      secretName: dashboard-tls
+
