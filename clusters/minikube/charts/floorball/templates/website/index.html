@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Floorball Tigers</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Floorball Tigers</h1>
+        <p>Offizielle Teamseite</p>
+    </header>
+
+    <section id="team">
+        <h2>Team</h2>
+        <ul id="teamlist"></ul>
+    </section>
+
+    <script>
+        fetch('team.json')
+            .then(response => response.json())
+            .then(players => {
+                let list = document.getElementById('teamlist');
+                players.forEach(p => {
+                    let li = document.createElement('li');
+                    li.textContent = p.number + " – " + p.name + " (" + p.position + ")";
+                    list.appendChild(li);
+                });
+            });
+    </script>
+</body>
+</html>

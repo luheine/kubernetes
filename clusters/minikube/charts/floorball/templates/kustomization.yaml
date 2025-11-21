@@ -1,0 +1,13 @@
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+
+configMapGenerator:
+  - name: floorball-site
+    files:
+      - website/index.html
+      - website/style.css
+      - website/team.json
+generatorOptions:
+  disableNameSuffixHash: true
