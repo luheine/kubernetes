@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: floorball
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: floorball
+  template:
+    metadata:
+      labels:
+        app: floorball
+    spec:
+      containers:
+        - name: web
+          image: nginx:alpine
+          volumeMounts:
+            - name: site
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: site
+          configMap:
+            name: floorball-site

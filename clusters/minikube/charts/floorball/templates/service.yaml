@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: homepage
+  name: floorball
 spec:
   selector:
-    app: homepage
+    app: floorball
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: 80
+      targetPort: 8080

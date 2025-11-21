@@ -1,21 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: homepage
+  name: floorball
   namespace: argocd
 spec:
-  project: default
+  project: floorball
   source:
     repoURL: "https://github.com/luheine/kubernetes.git"
     targetRevision: main
-    path: clusters/minikube/charts/homepage
+    path: clusters/minikube/charts/floorball
   destination:
     server: https://kubernetes.default.svc
-    namespace: homepages
+    namespace: floorball
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
-    - ServerSideApply=true

@@ -1,23 +1,23 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: homepage
+  name: floorball
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   tls:
     - hosts:
-        - homepage.minikube.local
-      secretName: homepage-tls
+        - floorball.minikube.local
+      secretName: floorball-tls
   rules:
-    - host: homepage.minikube.local
+    - host: floorball.minikube.local
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: homepage
+                name: floorball
                 port:
-                  number: 80
+                  number: 8080

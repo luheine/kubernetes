@@ -1,0 +1,17 @@
+image:
+  repository: ghcr.io/bastienwirtz/homer
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+
+ingress:
+  enabled: true
+  hosts:
+    - floorball.minikube.local
+  tls:
+    - hosts:
+        - floorball.minikube.local
+      secretName: floorball-tls
+
