@@ -9,9 +9,9 @@ service:
 ingress:
   enabled: true
   hosts:
-    - floorball.minikube.local
+    - floorball.lamp.local
   tls:
     - hosts:
-        - floorball.minikube.local
+        - floorball.lamp.local
       secretName: floorball-tls
 
