@@ -4,14 +4,14 @@ metadata:
   name: floorball
   namespace: argocd
 spec:
-  project: floorball
+  project: default
   source:
     repoURL: "https://github.com/luheine/kubernetes.git"
     targetRevision: main
     path: clusters/minikube/charts/floorball
   destination:
     server: https://kubernetes.default.svc
-    namespace: floorball
+    namespace: default
   syncPolicy:
     automated:
       prune: true
