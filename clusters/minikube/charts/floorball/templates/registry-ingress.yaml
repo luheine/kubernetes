@@ -7,7 +7,7 @@ metadata:
     kubernetes.io/ingress.class: nginx
 spec:
   rules:
-    - host: registry.lamp.local
+    - host: host.docker.internal
       http:
         paths:
           - path: /
@@ -19,5 +19,5 @@ spec:
                   number: 5000
   tls:
     - hosts:
-        - registry.lamp.local
+        - host.docker.internal
       secretName: registry-tls

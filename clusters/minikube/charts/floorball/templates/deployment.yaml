@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: floorball
-          image: registry.lamp.local/floorball:latest
+          image: host.docker.internal/floorball:latest
           ports:
             - containerPort: 80
