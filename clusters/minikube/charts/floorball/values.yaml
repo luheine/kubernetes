@@ -1,5 +1,5 @@
 image:
-  repository: ghcr.io/bastienwirtz/homer
+  repository: host.docker.internal/floorball
   tag: latest
   pullPolicy: IfNotPresent
 
