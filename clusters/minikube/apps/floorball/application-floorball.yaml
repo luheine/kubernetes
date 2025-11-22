@@ -4,7 +4,7 @@ metadata:
   name: floorball
   namespace: argocd
 spec:
-  project: default
+  project: floorball
   source:
     repoURL: "https://github.com/luheine/kubernetes.git"
     targetRevision: main

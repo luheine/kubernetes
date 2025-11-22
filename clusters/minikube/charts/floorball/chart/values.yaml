@@ -1,0 +1,32 @@
+image:
+  repository: host.docker.internal/floorball
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - host: homer.home.lab
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: [] # - secretName: floorball-tls
+
+
+resources: {}
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+podAnnotations: {}
+
+imagePullSecrets: []
+
