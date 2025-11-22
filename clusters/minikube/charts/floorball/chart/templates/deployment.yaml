@@ -17,17 +17,3 @@ spec:
           image: host.docker.internal/floorball:latest
           ports:
             - containerPort: 80
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          resources: {{ toYaml .Values.resources | nindent 12 }}
-      nodeSelector: {{ toYaml .Values.nodeSelector | nindent 6 }}
