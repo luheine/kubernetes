@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: floorball
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: floorball
+  template:
+    metadata:
+      labels:
+        app: floorball
+    spec:
+      containers:
+        - name: floorball
+          image: host.docker.internal/floorball:latest
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources: {{ toYaml .Values.resources | nindent 12 }}
+      nodeSelector: {{ toYaml .Values.nodeSelector | nindent 6 }}
