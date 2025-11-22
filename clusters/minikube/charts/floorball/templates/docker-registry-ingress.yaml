@@ -1,19 +1,19 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: floorball-ingress
-  namespace: floorball
+  name: registry-ingress
+  namespace: registry
   annotations:
     kubernetes.io/ingress.class: nginx
 spec:
   rules:
-  - host: floorball.lamp.local
+  - host: registry.lamp.local
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: floorball
+            name: registry
             port:
-              number: 80
+              number: 5000

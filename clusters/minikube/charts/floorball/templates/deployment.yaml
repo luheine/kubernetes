@@ -13,12 +13,7 @@ spec:
         app: floorball
     spec:
       containers:
-        - name: web
-          image: nginx:alpine
-          volumeMounts:
-            - name: site
-              mountPath: /usr/share/nginx/html
-      volumes:
-        - name: site
-          configMap:
-            name: floorball-site
+        - name: floorball
+          image: host.docker.internal/floorball:latest
+          ports:
+            - containerPort: 80
